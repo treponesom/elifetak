@@ -249,8 +249,25 @@
         <div class="form-section">
             <h2>➕ Yeni Link Oluştur</h2>
             <div class="form-group">
+                <label>Limit Tipi:</label>
+                <div style="margin-top: 10px;">
+                    <label style="display: inline-block; margin-right: 20px;">
+                        <input type="radio" name="limitType" value="count" checked onchange="toggleLimitType()"> 
+                        Kez (İzleme sayısı)
+                    </label>
+                    <label style="display: inline-block;">
+                        <input type="radio" name="limitType" value="time" onchange="toggleLimitType()"> 
+                        Süre (Zaman sınırlı)
+                    </label>
+                </div>
+            </div>
+            <div class="form-group" id="countLimitGroup">
                 <label for="viewLimit">İzleme Limiti (Kaç kez izlenebilecek?):</label>
                 <input type="number" id="viewLimit" min="1" max="1000" value="1" placeholder="Örn: 5">
+            </div>
+            <div class="form-group" id="timeLimitGroup" style="display: none;">
+                <label for="timeLimit">Süre (Dakika):</label>
+                <input type="number" id="timeLimit" min="1" max="1440" value="60" placeholder="Örn: 60">
             </div>
             <button onclick="createLink()">🔗 Link Oluştur</button>
         </div>
@@ -262,8 +279,9 @@
                     <thead>
                         <tr>
                             <th>Link Kodu</th>
-                            <th>İzleme Limiti</th>
-                            <th>Kalan İzleme</th>
+                            <th>Limit Tipi</th>
+                            <th>Limit</th>
+                            <th>Kalan</th>
                             <th>Durum</th>
                             <th>Oluşturma Tarihi</th>
                             <th>İşlemler</th>
@@ -280,6 +298,22 @@
     </div>
 
     <div class="notification" id="notification"></div>
+
+    <script>
+        function toggleLimitType() {
+            const limitType = document.querySelector('input[name="limitType"]:checked').value;
+            const countLimitGroup = document.getElementById('countLimitGroup');
+            const timeLimitGroup = document.getElementById('timeLimitGroup');
+            
+            if (limitType === 'count') {
+                countLimitGroup.style.display = 'block';
+                timeLimitGroup.style.display = 'none';
+            } else {
+                countLimitGroup.style.display = 'none';
+                timeLimitGroup.style.display = 'block';
+            }
+        }
+    </script>
 
     <script src="admin.js"></script>
 </body>

@@ -21,20 +21,33 @@ function validateLink(code) {
     return links.find(link => link.code === code);
 }
 
+// Linkin süresi doldu mu kontrol et
+function isLinkExpired(link) {
+    if (link.limitType === 'time') {
+        const now = new Date();
+        const expiresAt = new Date(link.expiresAt);
+        return now > expiresAt;
+    } else {
+        return link.remainingViews <= 0;
+    }
+}
+
 // İzleme sayısını azalt
 function decrementViewCount(code) {
     const links = loadLinks();
     const linkIndex = links.findIndex(link => link.code === code);
     
     if (linkIndex !== -1) {
-        links[linkIndex].remainingViews--;
-        
-        if (links[linkIndex].remainingViews <= 0) {
-            links[linkIndex].status = 'expired';
+        if (links[linkIndex].limitType === 'count') {
+            links[linkIndex].remainingViews--;
+            
+            if (links[linkIndex].remainingViews <= 0) {
+                links[linkIndex].status = 'expired';
+            }
+            
+            saveLinks(links);
+            return links[linkIndex].remainingViews;
         }
-        
-        saveLinks(links);
-        return links[linkIndex].remainingViews;
     }
     
     return -1;
@@ -66,8 +79,6 @@ function showVideo(link) {
     document.getElementById('videoSection').style.display = 'block';
     
     document.getElementById('linkCode').textContent = link.code;
-    document.getElementById('remainingViews').textContent = link.remainingViews;
-    document.getElementById('viewCountDisplay').textContent = link.remainingViews;
     
     // YouTube video ID'si
     const youtubeVideoId = 'xROC6HUeakk';
@@ -76,21 +87,56 @@ function showVideo(link) {
     const youtubePlayer = document.getElementById('youtubePlayer');
     youtubePlayer.src = `https://www.youtube.com/embed/${youtubeVideoId}?enablejsapi=1`;
     
-    // İzleme sayısını azalt (sayfa yüklendiğinde)
-    if (link.remainingViews > 0) {
-        const remaining = decrementViewCount(link.code);
-        link.remainingViews = remaining;
+    if (link.limitType === 'count') {
+        // Kez bazlı limit
+        document.getElementById('remainingViews').textContent = link.remainingViews;
+        document.getElementById('viewCountDisplay').textContent = link.remainingViews;
         
-        document.getElementById('remainingViews').textContent = remaining;
-        document.getElementById('viewCountDisplay').textContent = remaining;
-        
-        if (remaining <= 0) {
-            showNotification('İzleme hakkınız doldu!', 'error');
-            youtubePlayer.src = '';
-            setTimeout(() => {
-                window.location.href = 'viewer.html?code=' + link.code;
-            }, 2000);
+        // İzleme sayısını azalt (sayfa yüklendiğinde)
+        if (link.remainingViews > 0) {
+            const remaining = decrementViewCount(link.code);
+            link.remainingViews = remaining;
+            
+            document.getElementById('remainingViews').textContent = remaining;
+            document.getElementById('viewCountDisplay').textContent = remaining;
+            
+            if (remaining <= 0) {
+                showNotification('İzleme hakkınız doldu!', 'error');
+                youtubePlayer.src = '';
+                setTimeout(() => {
+                    window.location.href = 'viewer.html?code=' + link.code;
+                }, 2000);
+            }
         }
+    } else {
+        // Süre bazlı limit
+        const now = new Date();
+        const expiresAt = new Date(link.expiresAt);
+        const remainingMinutes = Math.max(0, Math.ceil((expiresAt - now) / 60000));
+        
+        document.getElementById('remainingViews').textContent = remainingMinutes + ' dakika';
+        document.getElementById('viewCountDisplay').textContent = remainingMinutes + ' dakika';
+        
+        // Süre kontrolü
+        const checkExpiration = () => {
+            const currentTime = new Date();
+            const currentRemaining = Math.max(0, Math.ceil((expiresAt - currentTime) / 60000));
+            
+            document.getElementById('remainingViews').textContent = currentRemaining + ' dakika';
+            document.getElementById('viewCountDisplay').textContent = currentRemaining + ' dakika';
+            
+            if (currentRemaining <= 0) {
+                showNotification('Süreniz doldu!', 'error');
+                youtubePlayer.src = '';
+                clearInterval(expirationInterval);
+                setTimeout(() => {
+                    window.location.href = 'viewer.html?code=' + link.code;
+                }, 2000);
+            }
+        };
+        
+        // Her saniye kontrol et
+        const expirationInterval = setInterval(checkExpiration, 1000);
     }
 }
 
@@ -117,9 +163,14 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
     
-    if (link.remainingViews <= 0 || link.status === 'expired') {
-        document.querySelector('.error-message').textContent = 'İzleme Hakkı Doldu';
-        document.querySelector('.error-description').textContent = 'Bu link için izleme hakkınız tükenmiş.';
+    if (isLinkExpired(link)) {
+        if (link.limitType === 'count') {
+            document.querySelector('.error-message').textContent = 'İzleme Hakkı Doldu';
+            document.querySelector('.error-description').textContent = 'Bu link için izleme hakkınız tükenmiş.';
+        } else {
+            document.querySelector('.error-message').textContent = 'Süre Doldu';
+            document.querySelector('.error-description').textContent = 'Bu linkin süresi dolmuş.';
+        }
         showError();
         return;
     }
