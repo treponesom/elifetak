@@ -1,0 +1,15 @@
+# Video dosyaları (çok büyük)
+*.mp4
+*.mp3
+
+# Diğer büyük dosyalar
+*.csv
+*.txt
+
+# Python dosyaları (opsiyonel)
+*.py
+*.bat
+
+# Windows dosyaları
+Thumbs.db
+desktop.ini
