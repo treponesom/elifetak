@@ -69,35 +69,29 @@ function showVideo(link) {
     document.getElementById('remainingViews').textContent = link.remainingViews;
     document.getElementById('viewCountDisplay').textContent = link.remainingViews;
     
-    // Video oynatıcıyı ayarla
-    const videoPlayer = document.getElementById('videoPlayer');
+    // YouTube video ID'si - BURAYA YOUTUBE VIDEO ID'SİNİ YAZIN
+    const youtubeVideoId = 'YOUTUBE_VIDEO_ID'; // Örnek: 'dQw4w9WgXcQ'
     
-    // Video başladığında izleme sayısını azalt
-    videoPlayer.addEventListener('play', function() {
-        if (link.remainingViews > 0) {
-            const remaining = decrementViewCount(link.code);
-            link.remainingViews = remaining;
-            
-            document.getElementById('remainingViews').textContent = remaining;
-            document.getElementById('viewCountDisplay').textContent = remaining;
-            
-            if (remaining <= 0) {
-                showNotification('İzleme hakkınız doldu!', 'error');
-                videoPlayer.pause();
-                setTimeout(() => {
-                    window.location.href = 'viewer.html?code=' + link.code;
-                }, 2000);
-            }
-        }
-    });
+    // YouTube embed'i ayarla
+    const youtubePlayer = document.getElementById('youtubePlayer');
+    youtubePlayer.src = `https://www.youtube.com/embed/${youtubeVideoId}?enablejsapi=1`;
     
-    // Sayfa kapatıldığında da izleme sayısını azalt (tek seferlik)
-    let viewCounted = false;
-    videoPlayer.addEventListener('loadedmetadata', function() {
-        if (!viewCounted && link.remainingViews > 0) {
-            viewCounted = true;
+    // İzleme sayısını azalt (sayfa yüklendiğinde)
+    if (link.remainingViews > 0) {
+        const remaining = decrementViewCount(link.code);
+        link.remainingViews = remaining;
+        
+        document.getElementById('remainingViews').textContent = remaining;
+        document.getElementById('viewCountDisplay').textContent = remaining;
+        
+        if (remaining <= 0) {
+            showNotification('İzleme hakkınız doldu!', 'error');
+            youtubePlayer.src = '';
+            setTimeout(() => {
+                window.location.href = 'viewer.html?code=' + link.code;
+            }, 2000);
         }
-    });
+    }
 }
 
 // Hata göster
