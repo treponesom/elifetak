@@ -69,8 +69,8 @@ function showVideo(link) {
     document.getElementById('remainingViews').textContent = link.remainingViews;
     document.getElementById('viewCountDisplay').textContent = link.remainingViews;
     
-    // YouTube video ID'si - BURAYA YOUTUBE VIDEO ID'SİNİ YAZIN
-    const youtubeVideoId = 'YOUTUBE_VIDEO_ID'; // Örnek: 'dQw4w9WgXcQ'
+    // YouTube video ID'si
+    const youtubeVideoId = 'xROC6HUeakk';
     
     // YouTube embed'i ayarla
     const youtubePlayer = document.getElementById('youtubePlayer');
