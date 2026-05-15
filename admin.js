@@ -21,7 +21,14 @@ function generateLinkCode() {
 
 // Yeni link oluştur
 function createLink() {
-    const limitType = document.querySelector('input[name="limitType"]:checked').value;
+    const limitTypeRadio = document.querySelector('input[name="limitType"]:checked');
+    
+    if (!limitTypeRadio) {
+        showNotification('Lütfen bir limit tipi seçin!', 'error');
+        return;
+    }
+    
+    const limitType = limitTypeRadio.value;
     
     let newLink = {
         code: generateLinkCode(),
